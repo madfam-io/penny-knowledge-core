@@ -2,7 +2,7 @@
 
 > **The "God-Mode" Long-Term Memory & Ontological Architect for the PENNY Ecosystem.**
 
-!([https://img.shields.io/badge/Status-Active_Development-green](https://www.google.com/search?q=https://img.shields.io/badge/Status-Active_Development-green))
+!([https://img.shields.io/badge/Status-Active_Development-green](https://img.shields.io/badge/Status-Active_Development-green))
 
 ## 📖 Introduction
 
