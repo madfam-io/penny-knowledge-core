@@ -3,7 +3,7 @@
 | **Project** | **PENNY** (Personalized Enterprise Neural Network Yield) |
 | --- | --- |
 | **Module** | **Knowledge Core & Long-Term Memory** |
-| **Version** | **2.0 (Enterprise Fleet Edition)** |
+| **Version** | **0.1.0 (Enterprise Fleet Edition)** |
 | **Status** | 🟢 **Approved for Execution** |
 | **Owner** | Lead Architect (You) |
 | **Objective** | To engineer a **"God-Mode" Headless Concierge** that serves as the central nervous system for PENNY, enabling autonomous architecture, management, and population of AnyType Spaces across multiple cryptographic identities. |
