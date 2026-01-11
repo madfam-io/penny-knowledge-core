@@ -2,7 +2,7 @@
 # PENNY Knowledge Core - Makefile
 # =============================================================================
 
-.PHONY: help install dev test lint format type-check clean docker-up docker-down docker-build
+.PHONY: help install dev test lint format type-check clean docker-up docker-down docker-build ui ui-dev
 
 # Default target
 help:
@@ -24,6 +24,10 @@ help:
 	@echo "  make docker-up       Start the Hydra fleet"
 	@echo "  make docker-down     Stop the Hydra fleet"
 	@echo "  make docker-logs     View container logs"
+	@echo ""
+	@echo "UI (Phase 4):"
+	@echo "  make ui          Run Chainlit UI (production)"
+	@echo "  make ui-dev      Run Chainlit UI with hot reload"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean       Remove build artifacts and caches"
@@ -92,6 +96,16 @@ run:
 
 run-dev:
 	RELOAD=true DEBUG=true python -m uvicorn penny_knowledge_core.server.main:app --host 0.0.0.0 --port 8000 --reload
+
+# =============================================================================
+# UI (Phase 4 - Chainlit)
+# =============================================================================
+
+ui:
+	python -m chainlit run src/penny_knowledge_core/ui/app.py --host 0.0.0.0 --port 8080
+
+ui-dev:
+	DEBUG=true python -m chainlit run src/penny_knowledge_core/ui/app.py --host 0.0.0.0 --port 8080 --watch
 
 # =============================================================================
 # Cleanup
