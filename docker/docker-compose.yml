@@ -1,0 +1,165 @@
+# =============================================================================
+# PENNY Knowledge Core - Docker Compose Configuration
+# =============================================================================
+# The "Hydra" Fleet: Centralized Brain, Decentralized State
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # The Gateway (The Brain) - Stateless MCP Router
+  # ---------------------------------------------------------------------------
+  penny-gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: penny-gateway
+    ports:
+      - "${GATEWAY_PORT:-8000}:8000"
+    environment:
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-false}
+      - FLEET_PERSONAL_URL=http://heart-personal:31009
+      - FLEET_WORK_URL=http://heart-work:31009
+      - FLEET_RESEARCH_URL=http://heart-research:31009
+      - DEFAULT_PROFILE=${DEFAULT_PROFILE:-personal}
+      - REDIS_URL=redis://redis:6379/0
+      - ANYTYPE_TIMEOUT_MS=${ANYTYPE_TIMEOUT_MS:-30000}
+      - ANYTYPE_MAX_RETRIES=${ANYTYPE_MAX_RETRIES:-3}
+      - ANYTYPE_RETRY_DELAY_MS=${ANYTYPE_RETRY_DELAY_MS:-500}
+      - ANYTYPE_BATCH_DELAY_MS=${ANYTYPE_BATCH_DELAY_MS:-50}
+    networks:
+      - penny-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      heart-personal:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Redis - Distributed Locking for Concurrent Write Protection
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: penny-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - penny-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Heart Containers (The Heads) - Stateful AnyType Nodes
+  # Each container runs a headless AnyType instance with its own identity
+  # ---------------------------------------------------------------------------
+
+  # Personal Profile Heart
+  heart-personal:
+    image: ghcr.io/anyproto/anytype-heart:latest
+    container_name: heart-personal
+    environment:
+      - ANYTYPE_MNEMONIC=${MNEMONIC_PERSONAL}
+      - ANYTYPE_API_PORT=31009
+      - ANYTYPE_GRPC_PORT=31010
+    volumes:
+      - heart-personal-data:/data
+    networks:
+      - penny-net
+    # SECURITY: Do NOT expose ports to host - internal network only
+    expose:
+      - "31009"
+      - "31010"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31009/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s  # Sync handshake can take time
+
+  # Work Profile Heart
+  heart-work:
+    image: ghcr.io/anyproto/anytype-heart:latest
+    container_name: heart-work
+    environment:
+      - ANYTYPE_MNEMONIC=${MNEMONIC_WORK}
+      - ANYTYPE_API_PORT=31009
+      - ANYTYPE_GRPC_PORT=31010
+    volumes:
+      - heart-work-data:/data
+    networks:
+      - penny-net
+    expose:
+      - "31009"
+      - "31010"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31009/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    profiles:
+      - full  # Only start with --profile full
+
+  # Research Profile Heart (Burner Identity)
+  heart-research:
+    image: ghcr.io/anyproto/anytype-heart:latest
+    container_name: heart-research
+    environment:
+      - ANYTYPE_MNEMONIC=${MNEMONIC_RESEARCH}
+      - ANYTYPE_API_PORT=31009
+      - ANYTYPE_GRPC_PORT=31010
+    volumes:
+      - heart-research-data:/data
+    networks:
+      - penny-net
+    expose:
+      - "31009"
+      - "31010"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31009/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    profiles:
+      - full  # Only start with --profile full
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  penny-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# -----------------------------------------------------------------------------
+# Volumes - Persistent Storage for Heart Databases
+# -----------------------------------------------------------------------------
+volumes:
+  redis-data:
+    driver: local
+  heart-personal-data:
+    driver: local
+  heart-work-data:
+    driver: local
+  heart-research-data:
+    driver: local

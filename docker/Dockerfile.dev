@@ -1,0 +1,36 @@
+# =============================================================================
+# PENNY Knowledge Core - Development Dockerfile
+# =============================================================================
+# Includes development dependencies and hot reload support
+# =============================================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install dependencies
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir -e ".[dev]"
+
+# Copy application source
+COPY src/ ./src/
+
+# Environment for development
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    GATEWAY_HOST=0.0.0.0 \
+    GATEWAY_PORT=8000 \
+    DEBUG=true \
+    RELOAD=true
+
+EXPOSE 8000
+
+# Run with hot reload
+CMD ["python", "-m", "uvicorn", "penny_knowledge_core.server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
