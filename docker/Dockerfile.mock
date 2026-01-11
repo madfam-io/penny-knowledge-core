@@ -1,0 +1,20 @@
+# =============================================================================
+# Mock Heart Container for Development
+# =============================================================================
+# Provides a mock AnyType Heart API for local development and testing
+# without requiring actual AnyType credentials.
+# =============================================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir fastapi uvicorn
+
+# Copy mock server
+COPY docker/mock_heart.py .
+
+EXPOSE 31009
+
+CMD ["python", "mock_heart.py"]

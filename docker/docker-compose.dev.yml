@@ -1,0 +1,36 @@
+# =============================================================================
+# PENNY Knowledge Core - Development Docker Compose Override
+# =============================================================================
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# =============================================================================
+
+services:
+  penny-gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      # Mount source for hot reload
+      - ../src:/app/src:ro
+    environment:
+      - DEBUG=true
+      - RELOAD=true
+      - LOG_LEVEL=DEBUG
+    # Override command for development with hot reload
+    command: ["python", "-m", "uvicorn", "penny_knowledge_core.server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]
+
+  # Mock Heart for development (when real AnyType is not available)
+  heart-mock:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mock
+    container_name: heart-mock
+    networks:
+      - penny-net
+    expose:
+      - "31009"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:31009/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,33 @@
+# =============================================================================
+# PENNY Knowledge Core - Chainlit Configuration
+# =============================================================================
+
+[project]
+enable_telemetry = false
+
+[features]
+prompt_playground = false
+multi_modal = true
+
+[UI]
+name = "PENNY"
+description = "Your Intelligent Knowledge Concierge"
+default_theme = "dark"
+default_expand_messages = false
+hide_cot = false
+github = ""
+
+[UI.theme]
+    primary_color = "#7C3AED"
+    secondary_color = "#A78BFA"
+    background_color = "#0F172A"
+    paper_color = "#1E293B"
+
+[UI.theme.light]
+    primary_color = "#7C3AED"
+    secondary_color = "#A78BFA"
+    background_color = "#F8FAFC"
+    paper_color = "#FFFFFF"
+
+[meta]
+generated_by = "penny-knowledge-core"
